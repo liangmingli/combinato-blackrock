@@ -1,4 +1,16 @@
-# Combinato Spike Sorting
+# Combinato Spike Sorting -- with native Blackrock NSx files support! 
+
+# version: alpha 1.0.  June 27 2022
+
+# usage:  
+python C:\Users\user\combinato\css-extract.py --ns5 --ns5_elec_start 193 --ns5_elec_end 200 --jobs test_ns5.txt --ns5jname [TaskName] --ns5file [NSxFileName]
+
+# caveats:
+if the NSx recordings are too long, it may crash the RAM. Currently still working to support reading segments or subset of electrodes from the whole data.
+
+below are the original introduction.
+
+Credits to Combinato by Johannes Niediek,  and NeoIO (https://github.com/NeuralEnsemble/python-neo)
 
 ## Introduction
 _Combinato Spike Sorting_ is a software for spike extraction, automatic spike sorting, manual improvement of sorting, artifact rejection, and visualization of continuous recordings and spikes. It offers a toolchain that transforms raw data into single/multi-unit spike trains. The software is largely modular, thus useful also if you are interested in just extraction or just sorting of spikes.
