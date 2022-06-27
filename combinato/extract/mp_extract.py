@@ -41,15 +41,18 @@ def save(q, ctarget):
         print('Job name: {} pending jobs: {} jnow: {}'.format(jname,
                                                               this_name_pending_jobs.keys(),
                                                               jcount))
-
         while last_saved_count[jname] + 1 in this_name_pending_jobs:
             sjob = this_name_pending_jobs[last_saved_count[jname] + 1]
             data = all_data[sjob['all_data_ind']]
-            if not sjob['name'] in openfiles:
-
-                 spoints = data[0][0].shape[1]
-                 openfiles[sjob['name']] = OutFile(sjob['name'], sjob['filename'],
+            if sjob['is_ns5']:
+                spoints = data[0][0].shape[1]
+                openfiles[sjob['name']] = OutFile(sjob['name']+str(sjob['elecid']), sjob['filename'],
                                                    spoints, sjob['destination'])
+            else:
+                if not sjob['name'] in openfiles:
+                    spoints = data[0][0].shape[1]
+                    openfiles[sjob['name']] = OutFile(sjob['name'], sjob['filename'],
+                                                    spoints, sjob['destination'])
 
             print('saving {}, count {}'.format(sjob['name'], sjob['count']))
             openfiles[sjob['name']].write(data)
@@ -68,7 +71,6 @@ def save(q, ctarget):
 def work(q_in, q_out, count, target):
 
     filters = {}
-
     while count.value < target:
         with count.get_lock():
             count.value += 1
@@ -91,66 +93,108 @@ def work(q_in, q_out, count, target):
 
     print('Work exited')
 
+def read_blackrock(fname):
+    from neo import io
+    r = io.BlackrockIO(fname)
+    bl = r.read()[0]
+    seg = bl.segments[0]
+    fdata = seg.analogsignals[1].magnitude.T # channel x time
+    sr = 30000.
+    ts = 1/sr
+    # here we need to shift the data according to job['start']
+    atimes = np.linspace(0, fdata.shape[1]/(sr/1000), fdata.shape[1])
+    data = (fdata, atimes, ts)
+    return data
 
 def read(jobs, q):
     """
     writes to q; q is read by worker processes
     """
     openfiles = {}
-
-    for job in jobs:
+    if ('is_ns5' in jobs[0].keys()) and jobs[0]['is_ns5']:
+        job = jobs[0]
         jname = job['name']
-
-        if ('is_h5file' in job.keys()) and job['is_h5file']:
-            if jname not in openfiles:
-                openfiles[jname] = tables.open_file(job['filename'], 'r')
-
-            if openfiles[jname].root.data.ndim == 1:
-                fdata = openfiles[jname].root.data[job['start']:job['stop']]
-            else:
-                raise Warning('Data has wrong number of dimensions')
-            fdata = fdata.ravel()
-            if 'sr' in openfiles[jname].root.__members__:
-                sr = openfiles[jname].root.sr[0]
-            else:
-                sr = 32000.
-            ts = 1/sr
-            # here we need to shift the data according to job['start']
-            atimes = np.linspace(0, fdata.shape[0]/(sr/1000), fdata.shape[0])
-            atimes += job['start']/(sr/1000)
-            data = (fdata, atimes, ts)
- 
-            job.update(filename='data_' + jname + '.h5')
-
-
-        elif 'is_matfile' in job.keys():
-            if job['is_matfile']:
-                fname = job['filename']
-                print('Reading from matfile ' + fname)
-                data = read_matfile(fname)
-                if job['scale_factor'] != 1:
-                    print('Rescaling matfile data by {:.4f}'.
-                        format(job['scale_factor']))
-                    data = (data[0] * job['scale_factor'],
+        fname = job['filename']
+        print('using Neo Reading from ns5 file ' + fname)
+        data = read_blackrock(fname)
+        if job['scale_factor'] != 1:
+            print('Rescaling ns5 data by {:.4f}'.
+                format(job['scale_factor']))
+            data = (data[0] * job['scale_factor'],
                             data[1],
                             data[2])
+        
+        # NOW Replace the jobs
+        new_jobs = []
+        start_elec = job['start_elec']
+        end_elec = job['end_elec']
+        sr = 30000.
+        ts = 1/sr
+        for ii,ii_data in zip(np.arange(start_elec,end_elec), data[0]):
+                jdict = {'name': jname,
+                     'filename': 'data_' + jname + str(ii)+ '.h5',
+                     'count': ii-start_elec,
+                     'elecid':ii,
+                     'is_ns5': True,
+                     'destination': job['destination']}
+                new_jobs.append(jdict)
+                new_data = (ii_data,data[1],ts)
+                q.put((jdict, new_data))
+                
+    else:
+        for job in jobs:
+            jname = job['name']
+
+            if ('is_h5file' in job.keys()) and job['is_h5file']:
+                if jname not in openfiles:
+                    openfiles[jname] = tables.open_file(job['filename'], 'r')
+
+                if openfiles[jname].root.h5data.ndim == 1:
+                    fdata = openfiles[jname].root.h5data[job['start']:job['stop']]
+                else:
+                    raise Warning('Data has wrong number of dimensions')
+                fdata = fdata.ravel()
+                if 'sr' in openfiles[jname].root.__members__:
+                    sr = openfiles[jname].root.sr[0]
+                else:
+                    sr = 32000.
+                ts = 1/sr
+                # here we need to shift the data according to job['start']
+                atimes = np.linspace(0, fdata.shape[0]/(sr/1000), fdata.shape[0])
+                atimes += job['start']/(sr/1000)
+                data = (fdata, atimes, ts)
+    
                 job.update(filename='data_' + jname + '.h5')
 
-        else:
-            if jname not in openfiles:
-                openfiles[jname] = ExtractNcsFile(job['filename'], job['reference'])
 
-            print('Read {} {: 7d} {: 7d}'.format(jname, job['start'], job['stop']))
-            data = openfiles[jname].read(job['start'], job['stop'])
-            job.update(filename='data_' + jname + '.h5')
+            elif 'is_matfile' in job.keys():
+                if job['is_matfile']:
+                    fname = job['filename']
+                    print('Reading from matfile ' + fname)
+                    data = read_matfile(fname)
+                    if job['scale_factor'] != 1:
+                        print('Rescaling matfile data by {:.4f}'.
+                            format(job['scale_factor']))
+                        data = (data[0] * job['scale_factor'],
+                                data[1],
+                                data[2])
+                    job.update(filename='data_' + jname + '.h5')
 
-        q.put((job, data))
+            else:
+                if jname not in openfiles:
+                    openfiles[jname] = ExtractNcsFile(job['filename'], job['reference'])
+
+                print('Read {} {: 7d} {: 7d}'.format(jname, job['start'], job['stop']))
+                data = openfiles[jname].read(job['start'], job['stop'])
+                job.update(filename='data_' + jname + '.h5')
+
+            q.put((job, data))
 
     print('Read exited')
 
 
 def mp_extract(jobs, nWorkers):
-
+    
     procs = []
 
     ctarget = len(jobs)

@@ -14,8 +14,11 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 HGAP = VGAP = BOTTOM = .02
 
-T_PRE = 1000   # relative to onset
-T_POST = 2000  # relative to onset
+from ..options import raster_options
+T_PRE = raster_options['T_PRE']
+T_POST = raster_options['T_POST']
+# T_PRE = 1000   # relative to onset
+# T_POST = 2000  # relative to onset
 std = 100
 nsamp_window = 10 * std
 
@@ -128,17 +131,20 @@ def plot_one_plot(plot, scale, spike_times, onset_times,
 
 def get_stim_info(frame, stimulus):
     idx = frame['stim_num'] == stimulus
-    stim_name = frame.loc[idx, 'stim_name'].get_values()[0]
-    fname_image = frame.loc[idx, 'filename'].get_values()[0]
+    # stim_name = frame.loc[idx, 'stim_name'].get_values()[0]
+    # fname_image = frame.loc[idx, 'filename'].get_values()[0]
+    stim_name = frame.loc[idx, 'stim_name'].to_numpy()[0]
+    fname_image = frame.loc[idx, 'filename'].to_numpy()[0]
     return stim_name, fname_image
 
 
 def get_onset_times(frame, stimulus, daytime, paradigm):
     idx = (frame['stim_num'] == stimulus)\
            & (frame['paradigm'] == paradigm)
-    if len(daytime):
-        idx &= frame['daytime'] == daytime
-    return frame.loc[idx, 'time'].get_values() * 1000
+    # if len(daytime):
+    #     idx &= frame['daytime'] == daytime
+    onsets = frame.loc[idx, 'time'].to_numpy().astype(float) * 1000
+    return onsets
 
 
 class RasterFigure(MplCanvas):
@@ -170,7 +176,6 @@ class RasterFigure(MplCanvas):
         figure.clf()
         stimuli = self.stimuli
         n_stim = len(stimuli)
-
         hgap = HGAP
         vgap = VGAP
 
@@ -189,7 +194,6 @@ class RasterFigure(MplCanvas):
         row_height = (1 - 2*vgap)/n_rows
         plot_height = row_height * .6
         iterator = list(zip((0, plot_width + hgap), ('scr', 'nscr')))
-
         col_shift = 0
 
         for istim, stimulus in enumerate(stimuli):

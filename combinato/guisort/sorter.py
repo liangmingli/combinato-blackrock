@@ -136,12 +136,14 @@ class SpikeSorter(QMainWindow, Ui_MainWindow):
             return
         #infix = '{:03d}{}{}'.format(pat, raster_options['infix'], run)
         infix = pat+paradigm
-        fname_frame = 'frame_{}.h5'.format(infix)
-        frame = pd.read_hdf(fname_frame, raster_options['frame_name'])
+        # fname_frame = 'frame_{}.h5'.format(infix)
+        # frame = pd.read_hdf(fname_frame, raster_options['frame_name'])
+        frame = pd.read_csv(raster_options['frame_name']) #mingli liang 6 24 2022
         meta_prefix = raster_options['meta_prefix']
-        image_path = os.path.join(meta_prefix, infix)
-        if paradigm.startswith('fn'):
-            image_path = os.path.join(meta_prefix, infix, infix)
+        # image_path = os.path.join(meta_prefix, infix)
+        image_path = meta_prefix #mingli liang 6/24/2022
+        # if paradigm.startswith('fn'):
+        #     image_path = os.path.join(meta_prefix, infix, infix)
 
         # now initialize the data
         self.rasterFigure = RasterFigure(self.centralwidget)
@@ -158,7 +160,6 @@ class SpikeSorter(QMainWindow, Ui_MainWindow):
         gid = str(self.groupComboBox.currentText())
         group = self.backend.sessions.groupsByName[gid]
         current_paradigm = str(self.lineEditStimSelect.text())
-
         indexes = self.listView.selectedIndexes()
         if indexes:
             index = indexes[0].row()
