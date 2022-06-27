@@ -15,7 +15,35 @@ as folder_patterns, add in the prefix of your data folders.
 ## caveats:
 if the NSx recordings are too long, it may crash the RAM. Currently still working to support reading segments or subset of electrodes from the whole data.
 
-below are the original introduction.
+## complete commands for spike sorting
+cd D:\datafolder
+%spike detection
+python C:\Users\user\combinato\css-extract.py --ns5 --ns5_elec_start 193 --ns5_elec_end 200 --jobs test_ns5.txt --ns5jname [TaskName] --ns5file [NSxFile]
+ 
+% artifact rejection prior to sorting
+python C:\Users\user\combinato\css-find-concurrent.py
+python  C:\Users\user\combinato\css-mask-artifacts.py
+
+% look at extracted spikes
+python C:\Users\user\combinato\css-overview-gui.py
+%save action to files, generate do_sort_neg.txt
+
+% sort channels
+python C:\Users\user\combinato\css-prepare-sorting.py --neg --jobs do_sort_neg.txt 
+python C:\Users\user\combinato\css-cluster.py --jobs sort_neg_ml2.txt
+
+% combine sessions
+Python C:\Users\ml2866\combinato\css-combine.py --jobs sort_neg_ml2.txt --no-plots
+Python C:\Users\ml2866\combinato\css-combine.py --jobs sort_neg_ml2.txt 
+
+% prepare for manual clustering
+copy do_sort_neg.txt do_manual_neg.txt
+
+% inspect results
+python C:\Users\ml2866\combinato\css-gui.py
+
+
+## below are the original introduction.
 
 Credits to Combinato by Johannes Niediek,  and NeoIO (https://github.com/NeuralEnsemble/python-neo)
 
