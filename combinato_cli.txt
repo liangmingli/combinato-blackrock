@@ -1,0 +1,33 @@
+cd D:\datafolder
+
+python C:\Users\user\combinato\css-overview-gui.py
+
+############ spike detection
+python C:\Users\user\combinato\css-extract.py --ns5 --ns5_elec_start 193 --ns5_elec_end 200 --jobs test_ns5.txt --ns5jname [TaskName] --ns5file [NSxFile]
+ 
+############ artifact rejection prior to sorting
+python C:\Users\user\combinato\css-find-concurrent.py
+python  C:\Users\user\combinato\css-mask-artifacts.py
+
+############### look at extracted spikes
+python C:\Users\user\combinato\css-overview-gui.py
+###save action to files, generate do_sort_neg.txt
+
+############ sort channels
+python C:\Users\user\combinato\css-prepare-sorting.py --neg --jobs do_sort_neg.txt 
+
+python C:\Users\user\combinato\css-cluster.py --jobs sort_neg_ml2.txt
+
+############ combine sessions
+Python C:\Users\ml2866\combinato\css-combine.py --jobs sort_neg_ml2.txt --no-plots
+Python C:\Users\ml2866\combinato\css-combine.py --jobs sort_neg_ml2.txt 
+
+########## prepare for manual clustering
+copy do_sort_neg.txt do_manual_neg.txt
+
+############ inspect results
+python C:\Users\ml2866\combinato\css-gui.py
+
+############ simple cluster = prepare+cluster+combine
+python C:\Users\ml2866\combinato\css-simple-clustering.py --datafile CSC29/data_CSC29.h5
+
