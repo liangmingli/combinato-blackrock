@@ -1,11 +1,18 @@
 # Combinato Spike Sorting -- with native Blackrock NSx files support! 
 
-# version: alpha 1.0.  June 27 2022
+## version: alpha 1.0.  June 27 2022
 
-# usage:  
+## usage:  
 python C:\Users\user\combinato\css-extract.py --ns5 --ns5_elec_start 193 --ns5_elec_end 200 --jobs test_ns5.txt --ns5jname [TaskName] --ns5file [NSxFileName]
 
-# caveats:
+## tricks:
+edit options.py for raster_options and folder_patterns
+
+raster_options= {'frame_name':'raster_test.csv','meta_prefix':'stimuli_images','T_PRE':1000,'T_POST':30000}
+
+as folder_patterns, add in the prefix of your data folders.
+
+## caveats:
 if the NSx recordings are too long, it may crash the RAM. Currently still working to support reading segments or subset of electrodes from the whole data.
 
 below are the original introduction.
