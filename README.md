@@ -6,6 +6,8 @@
 python C:\Users\user\combinato\css-extract.py --ns5 --ns5_elec_start 193 --ns5_elec_end 200 --jobs test_ns5.txt --ns5jname [TaskName] --ns5file [NSxFileName]
 
 ## tricks:
+when selecting subclusters, use keyboard, but not the mouse. Otherwise the selection index is off. (bug?)
+
 edit options.py for raster_options and folder_patterns
 
 raster_options= {'frame_name':'raster_test.csv','meta_prefix':'stimuli_images','T_PRE':1000,'T_POST':30000}
