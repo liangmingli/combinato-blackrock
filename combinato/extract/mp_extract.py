@@ -44,7 +44,7 @@ def save(q, ctarget):
         while last_saved_count[jname] + 1 in this_name_pending_jobs:
             sjob = this_name_pending_jobs[last_saved_count[jname] + 1]
             data = all_data[sjob['all_data_ind']]
-            if sjob['is_ns5']:
+            if ('is_ns5' in sjob.keys()) and sjob['is_ns5']:
                 spoints = data[0][0].shape[1]
                 openfiles[sjob['name']] = OutFile(sjob['name']+str(sjob['elecid']), sjob['filename'],
                                                    spoints, sjob['destination'])
@@ -154,10 +154,12 @@ def read(jobs, q):
                 else:
                     raise Warning('Data has wrong number of dimensions')
                 fdata = fdata.ravel()
-                if 'sr' in openfiles[jname].root.__members__:
-                    sr = openfiles[jname].root.sr[0]
-                else:
-                    sr = 32000.
+                # if 'sr' in openfiles[jname].root.__members__:
+                #     sr = openfiles[jname].root.sr[0]
+                # else:
+                #     sr = 32000.
+                sr = job['sr']
+                print('sampling rate is '+ str(sr))
                 ts = 1/sr
                 # here we need to shift the data according to job['start']
                 atimes = np.linspace(0, fdata.shape[0]/(sr/1000), fdata.shape[0])

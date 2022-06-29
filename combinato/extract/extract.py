@@ -42,6 +42,8 @@ def main():
                         help='extract data from a matlab file')
     parser.add_argument('--h5', action='store_true', default=False,
                         help='assume that files are h5 files')
+    parser.add_argument('--h5sr', nargs=1,
+                        help='sample rate if not specified')
     parser.add_argument('--ns5', action='store_true', default=False,
                         help='boolean, whether ns5')
     parser.add_argument('--ns5jname',nargs=1,
@@ -113,6 +115,7 @@ def main():
         return
 
     if args.h5:
+        sr = int(args.h5sr[0])
         jobs = []
         for f in files:
             size = get_h5size(f)
@@ -127,6 +130,7 @@ def main():
                      'start': starts[i],
                      'stop': stops[i],
                      'is_h5file': True,
+                     'sr':sr,
                      'count': i,
                      'destination': destination}
 
