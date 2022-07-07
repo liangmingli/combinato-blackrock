@@ -154,16 +154,23 @@ def read(jobs, q):
                 else:
                     raise Warning('Data has wrong number of dimensions')
                 fdata = fdata.ravel()
+                if job['scale_factor'] != 1:
+                    print('Rescaling ns5 data by {:.4f}'.
+                    format(job['scale_factor']))
+                    fdata = fdata * job['scale_factor']
                 # if 'sr' in openfiles[jname].root.__members__:
                 #     sr = openfiles[jname].root.sr[0]
                 # else:
                 #     sr = 32000.
                 sr = job['sr']
-                print('sampling rate is '+ str(sr))
+                print('sampling rate is '+ str(sr) +' Hz')
                 ts = 1/sr
                 # here we need to shift the data according to job['start']
                 atimes = np.linspace(0, fdata.shape[0]/(sr/1000), fdata.shape[0])
-                atimes += job['start']/(sr/1000)
+                if job['h5alignstart']:
+                    atimes += (job['start']-jobs[0]['start'])/(sr/1000) #realign spike times to the specified start time as 0
+                else:
+                    atimes += job['start']/(sr/1000)
                 data = (fdata, atimes, ts)
     
                 job.update(filename='data_' + jname + '.h5')

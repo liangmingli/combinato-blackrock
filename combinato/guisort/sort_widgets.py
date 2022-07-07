@@ -483,7 +483,6 @@ class AllGroupsFigure(MplCanvas):
 
     def mark(self, groupName, index):
         delfunc(self.texts)
-
         data = self.session.groupsByName[groupName].\
             clusters[index].meanspike
 

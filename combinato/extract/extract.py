@@ -44,6 +44,8 @@ def main():
                         help='assume that files are h5 files')
     parser.add_argument('--h5sr', nargs=1,
                         help='sample rate if not specified')
+    parser.add_argument('--h5alignstart', action='store_true', default=False,
+                        help='realign start values in mp_extract')
     parser.add_argument('--ns5', action='store_true', default=False,
                         help='boolean, whether ns5')
     parser.add_argument('--ns5jname',nargs=1,
@@ -117,9 +119,21 @@ def main():
     if args.h5:
         sr = int(args.h5sr[0])
         jobs = []
+        h5alignstart = args.h5alignstart
         for f in files:
+            if args.start:
+                start = int(args.start)
+            else:
+                start = 0
+
             size = get_h5size(f)
-            starts = list(range(0, size, 32000*5*60))
+            if args.stop:
+                stop = int(args.stop)
+                size = int(args.stop)
+            else:
+                stop = size
+
+            starts = list(range(start, stop, sr*5*60))
             stops = starts[1:] + [size]
             name = os.path.splitext(os.path.basename(f))[0]
 
@@ -130,6 +144,8 @@ def main():
                      'start': starts[i],
                      'stop': stops[i],
                      'is_h5file': True,
+                     'h5alignstart': h5alignstart,
+                     'scale_factor': args.matfile_scale_factor,
                      'sr':sr,
                      'count': i,
                      'destination': destination}

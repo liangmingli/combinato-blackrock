@@ -235,7 +235,6 @@ class SpikeSorter(QMainWindow, Ui_MainWindow):
         self.allGroupsFigure.draw()
 
     def onclick(self, event):
-
         if (event.inaxes is not None) and\
            (self.backend is not None) and\
            (self.backend.sessions is not None):
@@ -583,7 +582,6 @@ class SpikeSorter(QMainWindow, Ui_MainWindow):
             self.backend.sessions.dirty = False
 
     def on_actionMarkCluster_triggered(self):
-
         name = self.tabWidget.currentWidget().objectName()
         indexes = self.listView.selectedIndexes()
         if len(indexes) == 0:
@@ -601,7 +599,7 @@ class SpikeSorter(QMainWindow, Ui_MainWindow):
             clusterdata = clusterdata[idx]
             self.groupOverviewFigure.mark(index, clusterdata)
 
-        elif name == 'allGroupsTab':
+        elif name == 'allGroupsTab': #mingli liang
             self.allGroupsFigure.mark(groupName, index)
 
 
@@ -628,6 +626,7 @@ class SpikeSorter(QMainWindow, Ui_MainWindow):
             return
         model = self.backend.sessions.groupsByName[index]
         self.listView.setModel(model)
+        # self.listView.setCurrentIndex(model.index(0,0))
         self.listView.selectionModel().currentChanged.\
             connect(self.on_actionMarkCluster_triggered)
         self.setRadioButtons(index)
@@ -681,7 +680,6 @@ class SpikeSorter(QMainWindow, Ui_MainWindow):
         if src is None:
             src = self.listView
         indexes = src.selectedIndexes()
-
         for obj in (src.model(), dst):
             obj.beginResetModel()
        
