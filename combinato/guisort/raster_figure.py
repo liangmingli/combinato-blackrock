@@ -14,8 +14,8 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 HGAP = VGAP = BOTTOM = .02
 
-from ..options import RunGuiWithRaster
-if RunGuiWithRaster:
+from ..options import options
+if options['RunGuiWithRaster']:
     from ..options import raster_options
     T_PRE = raster_options['T_PRE']
     T_POST = raster_options['T_POST']
