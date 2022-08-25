@@ -19,9 +19,11 @@ if options['RunGuiWithRaster']:
     from ..options import raster_options
     T_PRE = raster_options['T_PRE']
     T_POST = raster_options['T_POST']
+    duration = raster_options['duration']
 else:
     T_PRE = 1000   # relative to onset
     T_POST = 2000  # relative to onset
+    duration = 1000 # default 1000ms duration
 std = 100
 nsamp_window = 10 * std
 
@@ -37,7 +39,7 @@ def set_raster_properties(p, ylim=8):
     for where in ('left', 'right'):
         p.spines[where].set_visible(False)
     p.axvline(0, ls='dashed', color='k')
-    p.axvline(1000, ls='dashed', color='k')
+    p.axvline(duration, ls='dashed', color='k')
 
     p.set_xlim([-T_PRE, T_POST])
     p.set_xticks([-T_PRE, T_POST])
@@ -184,8 +186,8 @@ class RasterFigure(MplCanvas):
 
         # number of cols is 2 starting from 4 stimuli
         if n_stim > 3:
-            n_cols = 2
-            plot_width = (1 - 8*hgap)/4
+            n_cols = 4 #mingli liang
+            plot_width = (1 - 8*hgap)/8
             if len(set(self.frame.paradigm))<2:
                 plot_width *= 2
             n_rows = int((n_stim + 1)/2)
@@ -224,7 +226,7 @@ class RasterFigure(MplCanvas):
                               paradigm, number)
 
                     if (istim + 1 == n_rows) or (istim + 1 == n_stim):
-                        plot.set_xticks([0, 1000])
-                        plot.set_xticklabels([0, 1000])
+                        plot.set_xticks([0, duration])
+                        plot.set_xticklabels([0, duration])
 
         self.draw()
